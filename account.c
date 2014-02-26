@@ -25,31 +25,85 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if !defined(LIBXMEM_H)
-#define LIBXMEM_H
+#include "account.h"
+#include "store.h"
 
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
-#if MEMORY_ACCOUNTING
+int
+acc_init(void) {
+    atexit(acc_finalize);
 
-#include <account.h>
+    return 0;
 
-#define xmalloc(sz) acc_malloc((sz), __FILE__, __LINE__)
-#define xrealloc(ptr, sz) acc_realloc((ptr), (sz), __FILE__, __LINE__)
-#define xfree(ptr) acc_free(ptr)
+}
 
-#define xstrdup(str) acc_strdup((str), __FILE__, __LINE__)
+static int
+acc_print_block(void *ptr, size_t sz, char *file, int line, void *arg) {
+    fprintf(stderr, "- %lu bytes allocated in %s, line %d\n", sz, file, line);
 
-#else
+    return 0;
 
-extern void *(*xmalloc)(size_t sz);
-extern void *(*xrealloc)(void *ptr, size_t sz);
-extern void (*xfree)(void *ptr);
+}
 
-extern char *(*xstrdup)(const char *str);
-extern char *(*xstrndup)(const char *str, size_t sz);
+void
+acc_finalize(void) {
+    if (!as_count())
+        return;
 
-#endif
+    fprintf(stderr, "%d allocated blocks exist on termination:\n", as_count());
+    as_walk(acc_print_block, NULL);
 
-#endif
+}
+
+void *
+acc_malloc(size_t sz, char *file, int line) {
+    void *ret;
+
+    ret = malloc(sz);
+    if (!ret)
+        return NULL;
+
+    as_add(ret, sz, file, line);
+
+    return ret;
+
+}
+
+void *
+acc_realloc(void *ptr, size_t sz, char *file, int line) {
+    void *ret;
+
+    ret = realloc(ptr, sz);
+    if (!ret)
+        return NULL;
+
+    as_replace(ptr, ret, sz, file, line);
+
+    return ret;
+
+}
+
+void
+acc_free(void *ptr) {
+    as_delete(ptr);
+    free(ptr);
+
+}
+
+char *
+acc_strdup(const char *str, char *file, int line) {
+    char *ret;
+
+    ret = strdup(str);
+    if (!ret)
+        return NULL;
+    
+    as_add(ret, strlen(str) + 1, file, line);
+
+    return ret;
+
+}
 

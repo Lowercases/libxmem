@@ -25,31 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if !defined(LIBXMEM_H)
-#define LIBXMEM_H
+#if !defined(STORE_H)
+#define STORE_H
 
 #include <stdlib.h>
 
-#if MEMORY_ACCOUNTING
+void as_create(void);
 
-#include <account.h>
+int as_add(void *ptr, size_t sz, char *file, int line);
+int as_replace(void *prev, void *ptr, size_t sz, char *file, int line);
+int as_delete(void *ptr);
 
-#define xmalloc(sz) acc_malloc((sz), __FILE__, __LINE__)
-#define xrealloc(ptr, sz) acc_realloc((ptr), (sz), __FILE__, __LINE__)
-#define xfree(ptr) acc_free(ptr)
-
-#define xstrdup(str) acc_strdup((str), __FILE__, __LINE__)
-
-#else
-
-extern void *(*xmalloc)(size_t sz);
-extern void *(*xrealloc)(void *ptr, size_t sz);
-extern void (*xfree)(void *ptr);
-
-extern char *(*xstrdup)(const char *str);
-extern char *(*xstrndup)(const char *str, size_t sz);
-
-#endif
+int as_count(void);
+int as_walk(int (*callback)(void *ptr, size_t sz, char *file, int line,
+        void *arg), void *arg);
 
 #endif
 
