@@ -28,6 +28,7 @@
 #if !defined(LIBXMEM_H)
 #define LIBXMEM_H
 
+#include <config.h>
 #include <stdlib.h>
 
 #if MEMORY_ACCOUNTING

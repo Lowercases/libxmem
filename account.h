@@ -28,6 +28,7 @@
 #if !defined(ACCOUNT_H)
 #define ACCOUNT_H
 
+#include <config.h>
 #include <stdlib.h>
 
 #if MEMORY_ACCOUNTING
