@@ -107,3 +107,16 @@ acc_strdup(const char *str, char *file, int line) {
 
 }
 
+char *
+acc_strndup(const char *str, size_t sz, char *file, int line) {
+    char *ret;
+
+    ret = strndup(str, sz);
+    if (!ret)
+        return NULL;
+
+    as_add(ret, sz + 1, file, line);
+
+    return ret;
+
+}

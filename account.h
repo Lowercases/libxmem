@@ -43,6 +43,7 @@ void *acc_realloc(void *ptr, size_t sz, char *file, int line);
 void acc_free(void *ptr);
 
 char *acc_strdup(const char *str, char *file, int line);
+char *acc_strndup(const char *str, size_t sz, char *file, int line);
 
 #endif
 

@@ -40,6 +40,7 @@
 #define xfree(ptr) acc_free(ptr)
 
 #define xstrdup(str) acc_strdup((str), __FILE__, __LINE__)
+#define xstrndup(str, sz) acc_strndup((str), (sz), __FILE__, __LINE__)
 
 #else
 
