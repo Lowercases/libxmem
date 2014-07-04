@@ -32,6 +32,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <config.h>
+
 int
 acc_init(void) {
     atexit(acc_finalize);
@@ -80,6 +82,24 @@ acc_realloc(void *ptr, size_t sz, char *file, int line) {
     if (!ret)
         return NULL;
 
+#if MEMORY_ZEROING
+    do {
+        size_t oldsz;
+
+        if (!as_get(ptr, &oldsz))
+            break;
+
+        // Only zero out the part that's not in the new array.
+        // For the special case that's the same pointer, the difference yields 0
+        if (ret > ptr)
+            memset(ptr, 0, ret < ptr + oldsz ? ret - ptr : oldsz);
+        else // if (ptr > ret)
+            memset(ptr, 0, ptr < ret + oldsz ? ptr - ret : oldsz);
+
+    }
+    while (0);
+#endif
+
     as_replace(ptr, ret, sz, file, line);
 
     return ret;
@@ -88,6 +108,19 @@ acc_realloc(void *ptr, size_t sz, char *file, int line) {
 
 void
 acc_free(void *ptr, char *file, int line) {
+#if MEMORY_ZEROING
+    do {
+        size_t oldsz;
+
+        if (!as_get(ptr, &oldsz))
+            break;
+
+        memset(ptr, 0, oldsz);
+
+    }
+    while (0);
+#endif
+    
     if (!as_delete(ptr)) {
         printf("Aborting trying to delete %p, %s line %d\n", ptr, file, line);
         abort();
