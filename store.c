@@ -97,6 +97,20 @@ as_replace(void *prev, void *ptr, size_t sz, char *file, int line) {
 }
 
 int
+as_get(void *ptr, size_t *sz) {
+    struct storage *curr;
+
+    for (curr = storage.next; curr; curr = curr->next)
+        if (curr->ptr == ptr) {
+            *sz = curr->sz;
+            return 1;
+        }
+
+    return 0;
+
+}
+
+int
 as_delete(void *ptr) {
     struct storage *curr, *next;
 

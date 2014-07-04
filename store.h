@@ -37,6 +37,7 @@ int as_replace(void *prev, void *ptr, size_t sz, char *file, int line);
 int as_delete(void *ptr);
 
 int as_count(void);
+int as_get(void *ptr, size_t *sz);
 int as_walk(int (*callback)(void *ptr, size_t sz, char *file, int line,
         void *arg), void *arg);
 
