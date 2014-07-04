@@ -87,8 +87,11 @@ acc_realloc(void *ptr, size_t sz, char *file, int line) {
 }
 
 void
-acc_free(void *ptr) {
-    as_delete(ptr);
+acc_free(void *ptr, char *file, int line) {
+    if (!as_delete(ptr)) {
+        printf("Aborting trying to delete %p, %s line %d\n", ptr, file, line);
+        abort();
+    }
     free(ptr);
 
 }

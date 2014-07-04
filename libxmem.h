@@ -37,7 +37,7 @@
 
 #define xmalloc(sz) acc_malloc((sz), __FILE__, __LINE__)
 #define xrealloc(ptr, sz) acc_realloc((ptr), (sz), __FILE__, __LINE__)
-#define xfree(ptr) acc_free(ptr)
+#define xfree(ptr) acc_free((ptr), __FILE__, __LINE__)
 
 #define xstrdup(str) acc_strdup((str), __FILE__, __LINE__)
 #define xstrndup(str, sz) acc_strndup((str), (sz), __FILE__, __LINE__)
