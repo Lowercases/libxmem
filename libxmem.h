@@ -44,12 +44,12 @@
 
 #else
 
-extern void *(*xmalloc)(size_t sz);
-extern void *(*xrealloc)(void *ptr, size_t sz);
-extern void (*xfree)(void *ptr);
+#define xmalloc malloc
+#define xrealloc realloc
+#define xfree free
 
-extern char *(*xstrdup)(const char *str);
-extern char *(*xstrndup)(const char *str, size_t sz);
+#define xstrdup strdup
+#define xstrndup strndup
 
 #endif
 
