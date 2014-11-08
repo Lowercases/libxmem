@@ -43,8 +43,11 @@ acc_init(void) {
 }
 
 static int
-acc_print_block(void *ptr, size_t sz, char *file, int line, void *arg) {
-    fprintf(stderr, "- %lu bytes allocated in %s, line %d\n", sz, file, line);
+acc_print_block(void *ptr, size_t sz, char txt[],
+        char *file, int line, void *arg)
+{
+    fprintf(stderr, "- %lu bytes allocated in %s, line %d: txt `%s'\n",
+            sz, file, line, txt);
 
     return 0;
 
@@ -61,14 +64,17 @@ acc_finalize(void) {
 }
 
 void *
-acc_malloc(size_t sz, char *file, int line) {
+acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
+    va_list va;
     void *ret;
 
     ret = malloc(sz);
     if (!ret)
         return NULL;
 
-    as_add(ret, sz, file, line);
+    va_start(va, txt);
+    as_vadd(ret, sz, file, line, txt, va);
+    va_end(va);
 
     return ret;
 
@@ -137,7 +143,7 @@ acc_strdup(const char *str, char *file, int line) {
     if (!ret)
         return NULL;
     
-    as_add(ret, strlen(str) + 1, file, line);
+    as_add(ret, strlen(str) + 1, file, line, "%s", str);
 
     return ret;
 
@@ -151,8 +157,14 @@ acc_strndup(const char *str, size_t sz, char *file, int line) {
     if (!ret)
         return NULL;
 
-    as_add(ret, sz + 1, file, line);
+    as_add(ret, sz + 1, file, line, "%s", ret);
 
     return ret;
+
+}
+
+char *
+acc_character(const void *ptr) {
+    return as_character(ptr);
 
 }

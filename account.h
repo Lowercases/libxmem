@@ -38,12 +38,15 @@ int acc_init(void);
 #endif
 void acc_finalize(void);
 
-void *acc_malloc(size_t sz, char *file, int line);
+void *acc_malloc(size_t sz, char *file, int line, char txt[], ...)
+        __attribute__ (( format(printf, 4, 5) ));
 void *acc_realloc(void *ptr, size_t sz, char *file, int line);
 void acc_free(void *ptr, char *file, int line);
 
 char *acc_strdup(const char *str, char *file, int line);
 char *acc_strndup(const char *str, size_t sz, char *file, int line);
+
+char *acc_character(const void *ptr);
 
 #endif
 

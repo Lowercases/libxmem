@@ -29,17 +29,22 @@
 #define STORE_H
 
 #include <stdlib.h>
+#include <stdarg.h>
 
 void as_create(void);
 
-int as_add(void *ptr, size_t sz, char *file, int line);
+int as_add(void *ptr, size_t sz, char *file, int line, const char txt[], ...)
+        __attribute__ (( format(printf, 5, 6) ));
+int as_vadd(void *ptr, size_t sz, char *file, int line, const char txt[],
+        va_list args);
 int as_replace(void *prev, void *ptr, size_t sz, char *file, int line);
 int as_delete(void *ptr);
 
 int as_count(void);
 int as_get(void *ptr, size_t *sz);
-int as_walk(int (*callback)(void *ptr, size_t sz, char *file, int line,
-        void *arg), void *arg);
+char *as_character(const void *ptr);
+int as_walk(int (*callback)(void *ptr, size_t sz, char txt[],
+        char *file, int line, void *arg), void *arg);
 
 #endif
 

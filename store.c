@@ -28,7 +28,9 @@
 #include "store.h"
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 
 /**
  * We'll store the used pointers in a simple list. Perhaps in the future it's
@@ -40,6 +42,7 @@ struct storage {
     void *ptr;
     size_t sz;
 
+    char *txt;
     char *file;
     int line;
 
@@ -54,8 +57,25 @@ as_create(void) {
 }
 
 int
-as_add(void *ptr, size_t sz, char *file, int line) {
+as_add(void *ptr, size_t sz, char *file, int line, const char txt[], ...) {
+    va_list va;
+    int ret;
+
+    va_start(va, txt);
+    ret = as_vadd(ptr, sz, file, line, txt, va);
+    va_end(va);
+
+    return ret;
+
+}
+    
+int
+as_vadd(void *ptr, size_t sz, char *file, int line,
+        const char txt[], va_list args)
+{
+    va_list argscopy;
     struct storage *st;
+    size_t flen;
 
     st = malloc(sizeof(struct storage));
     if (!st)
@@ -67,6 +87,15 @@ as_add(void *ptr, size_t sz, char *file, int line) {
 
     st->file = strdup(file);
     st->line = line;
+
+    // Calculate the sz of format string
+    va_copy(argscopy, args);
+    flen = vsnprintf(NULL, 0, txt, args);
+    st->txt = malloc(flen + 1);
+    if (!st->txt)
+        abort();
+    vsnprintf(st->txt, flen + 1, txt, argscopy);
+    st->txt[flen] = '\0';
     
     st->next = storage.next;
     storage.next = st;
@@ -110,6 +139,18 @@ as_get(void *ptr, size_t *sz) {
 
 }
 
+char *
+as_character(const void *ptr) {
+    struct storage *curr;
+
+    for (curr = storage.next; curr; curr = curr->next)
+        if (curr->ptr == ptr)
+            return curr->txt;
+
+    return NULL;
+
+}
+
 int
 as_delete(void *ptr) {
     struct storage *curr, *next;
@@ -119,6 +160,7 @@ as_delete(void *ptr) {
             next = curr->next->next;
 
             free(curr->next->file);
+            free(curr->next->txt);
             free(curr->next);
 
             curr->next = next;
@@ -133,13 +175,14 @@ as_delete(void *ptr) {
 
 int
 as_walk(callback, arg)
-    int (*callback)(void *ptr, size_t sz, char *file, int line, void *arg);
+    int (*callback)(void *ptr, size_t sz,
+            char txt[], char *file, int line, void *arg);
     void *arg;
 {
     struct storage *curr;
 
     for (curr = storage.next; curr; curr = curr->next)
-        callback(curr->ptr, curr->sz, curr->file, curr->line, arg);
+        callback(curr->ptr, curr->sz, curr->txt, curr->file, curr->line, arg);
 
     return 0;
 
