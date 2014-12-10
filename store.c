@@ -32,6 +32,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <pthread.h>
+
 /**
  * We'll store the used pointers in a simple list. Perhaps in the future it's
  * worthy to implement a hash, but for the time it's not -- and search.h is
@@ -50,9 +52,30 @@ struct storage {
 
 } storage;
 
+int as_reentrant;
+int walking;
+pthread_mutex_t storage_mx = PTHREAD_MUTEX_INITIALIZER;
+
+#define LOCK() \
+    do { \
+        if (as_reentrant) \
+            pthread_mutex_lock(&storage_mx); \
+    } while(0)
+#define UNLOCK() \
+    do { \
+        if (as_reentrant) \
+            pthread_mutex_unlock(&storage_mx); \
+    } while(0)
+
 void
 as_create(void) {
     // Ironic?
+
+}
+
+void
+as_set_reentrant(void) {
+    as_reentrant = 1;
 
 }
 
@@ -97,8 +120,10 @@ as_vadd(void *ptr, size_t sz, char *file, int line,
     vsnprintf(st->txt, flen + 1, txt, argscopy);
     st->txt[flen] = '\0';
     
+    LOCK();
     st->next = storage.next;
     storage.next = st;
+    UNLOCK();
 
     return 1;
 
@@ -108,6 +133,7 @@ int
 as_replace(void *prev, void *ptr, size_t sz, char *file, int line) {
     struct storage *curr;
 
+    LOCK();
     for (curr = storage.next; curr; curr = curr->next)
         if (curr->ptr == prev) {
             curr->ptr = ptr;
@@ -117,10 +143,12 @@ as_replace(void *prev, void *ptr, size_t sz, char *file, int line) {
             curr->file = strdup(file);
             curr->line = line;
 
+            UNLOCK();
             return 1;
 
        }
 
+    UNLOCK();
     return 0;
 
 }
@@ -129,12 +157,15 @@ int
 as_get(const void *ptr, size_t *sz) {
     struct storage *curr;
 
+    LOCK();
     for (curr = storage.next; curr; curr = curr->next)
         if (curr->ptr == ptr) {
             *sz = curr->sz;
+            UNLOCK();
             return 1;
         }
 
+    UNLOCK();
     return 0;
 
 }
@@ -142,11 +173,21 @@ as_get(const void *ptr, size_t *sz) {
 char *
 as_character(const void *ptr) {
     struct storage *curr;
+    char *ret;
 
+    if (!walking)
+        LOCK();
     for (curr = storage.next; curr; curr = curr->next)
-        if (curr->ptr == ptr)
-            return curr->txt;
+        if (curr->ptr == ptr) {
+            // TODO: This is not entirely safe.
+            ret = curr->txt;
+            if (!walking)
+                UNLOCK();
+            return ret;
+        }
 
+    if (!walking)
+        UNLOCK();
     return NULL;
 
 }
@@ -155,6 +196,7 @@ int
 as_delete(void *ptr) {
     struct storage *curr, *next;
 
+    LOCK();
     for (curr = &storage; curr->next; curr = curr->next)
         if (curr->next->ptr == ptr) {
             next = curr->next->next;
@@ -165,10 +207,12 @@ as_delete(void *ptr) {
 
             curr->next = next;
 
+            UNLOCK();
             return 1;
 
         }
 
+    UNLOCK();
     return 0;
 
 }
@@ -181,8 +225,12 @@ as_walk(callback, arg)
 {
     struct storage *curr;
 
+    LOCK();
+    walking = 1;
     for (curr = storage.next; curr; curr = curr->next)
         callback(curr->ptr, curr->sz, curr->txt, curr->file, curr->line, arg);
+    walking = 0;
+    UNLOCK();
 
     return 0;
 
@@ -193,8 +241,10 @@ as_count(void) {
     struct storage *curr;
     int r;
 
+    LOCK();
     for (r = 0, curr = storage.next; curr; curr = curr->next)
         r ++;
+    UNLOCK();
 
     return r;
 

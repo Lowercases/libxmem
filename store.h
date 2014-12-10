@@ -32,6 +32,7 @@
 #include <stdarg.h>
 
 void as_create(void);
+void as_set_reentrant(void);
 
 int as_add(void *ptr, size_t sz, char *file, int line, const char txt[], ...)
         __attribute__ (( format(printf, 5, 6) ));

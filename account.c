@@ -51,6 +51,12 @@ acc_init(void) {
 
 }
 
+void
+acc_set_reentrant() {
+    as_set_reentrant();
+
+}
+
 static int
 acc_print_block(void *ptr, size_t sz, char txt[],
         char *file, int line, void *arg)
