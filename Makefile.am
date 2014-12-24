@@ -25,8 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-AM_CFLAGS = $(WARNINGCFLAGS)
-
 lib_LTLIBRARIES = libxmem.la
 
-libxmem_la_SOURCES = libxmem.h account.h account.c store.h store.c
+libxmem_la_SOURCES = account.c store.h store.c

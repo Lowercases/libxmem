@@ -25,14 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "account.h"
-#include "store.h"
+#include <account.h>
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #include <config.h>
+
+#include "store.h"
 
 int
 acc_init(void) {
