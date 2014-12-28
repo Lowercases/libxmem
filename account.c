@@ -107,7 +107,10 @@ acc_realloc(void *ptr, size_t sz, char *file, int line) {
     while (0);
 #endif
 
-    as_replace(ptr, ret, sz, file, line);
+    if (ptr)
+        as_replace(ptr, ret, sz, file, line);
+    else
+        as_add(ret, sz, file, line, "realloced from NULL memory");
 
     return ret;
 
