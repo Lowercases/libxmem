@@ -35,9 +35,17 @@
 
 #include "store.h"
 
+#if MEMORY_LOG
+FILE *memory_log;
+#endif
+
 int
 acc_init(void) {
     atexit(acc_finalize);
+
+#if MEMORY_LOG
+    memory_log = fopen("memory.log", "w");
+#endif
 
     return 0;
 
@@ -59,6 +67,11 @@ acc_finalize(void) {
     if (!as_count())
         return;
 
+#if MEMORY_LOG
+    if (memory_log)
+        fclose(memory_log);
+#endif
+
     fprintf(stderr, "%d allocated blocks exist on termination:\n", as_count());
     as_walk(acc_print_block, NULL);
 
@@ -68,12 +81,27 @@ void *
 acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
     va_list va;
     void *ret;
+#if MEMORY_LOG
+    va_list vacopy;
+#endif
 
     ret = malloc(sz);
     if (!ret)
         return NULL;
 
     va_start(va, txt);
+
+#if MEMORY_LOG
+    if (memory_log) {
+        fprintf(memory_log, "%p: allocated %lu bytes at %s line %d: ",
+                ret, sz, file, line);
+        va_copy(vacopy, va);
+        vfprintf(memory_log, txt, vacopy);
+        va_end(vacopy);
+        fprintf(memory_log, "\n");
+    }
+#endif
+
     as_vadd(ret, sz, file, line, txt, va);
     va_end(va);
 
@@ -112,6 +140,12 @@ acc_realloc(void *ptr, size_t sz, char *file, int line) {
     else
         as_add(ret, sz, file, line, "realloced from NULL memory");
 
+#if MEMORY_LOG
+    if (memory_log)
+        fprintf(memory_log, "%p: reallocated %p to %lu bytes at %s line %d",
+                ret, ptr, sz, file, line);
+#endif
+
     return ret;
 
 }
@@ -130,6 +164,11 @@ acc_free(void *ptr, char *file, int line) {
     }
     while (0);
 #endif
+
+#if MEMORY_LOG
+    if (memory_log)
+        fprintf(memory_log, "%p: freed from %s line %d\n", ptr, file, line);
+#endif
     
     if (!as_delete(ptr)) {
         printf("Aborting trying to delete %p, %s line %d\n", ptr, file, line);
@@ -146,6 +185,12 @@ acc_strdup(const char *str, char *file, int line) {
     ret = strdup(str);
     if (!ret)
         return NULL;
+
+#if MEMORY_LOG
+    if (memory_log)
+        fprintf(memory_log, "%p: strduped %lu bytes at %s line %d: ",
+                ret, strlen(str) + 1, file, line);
+#endif
     
     as_add(ret, strlen(str) + 1, file, line, "%s", str);
 
@@ -161,6 +206,12 @@ acc_strndup(const char *str, size_t sz, char *file, int line) {
     if (!ret)
         return NULL;
 
+#if MEMORY_LOG
+    if (memory_log)
+        fprintf(memory_log, "%p: strnduped %lu bytes at %s line %d: ",
+                ret, sz, file, line);
+#endif
+    
     as_add(ret, sz + 1, file, line, "%s", ret);
 
     return ret;
