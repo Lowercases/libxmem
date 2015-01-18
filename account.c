@@ -161,7 +161,7 @@ acc_strndup(const char *str, size_t sz, char *file, int line) {
     if (!ret)
         return NULL;
 
-    as_add(ret, sz + 1, file, line, "%s", ret);
+    as_add(ret, strlen(str) + 1, file, line, "%s", ret);
 
     return ret;
 
