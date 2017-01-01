@@ -25,8 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <account.h>
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -35,15 +33,18 @@
 
 #include "store.h"
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
 FILE *memory_log;
 #endif
+
+int acc_init(void) __attribute__ ((constructor));
+void acc_finalize(void);
 
 int
 acc_init(void) {
     atexit(acc_finalize);
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     memory_log = fopen("memory.log", "w");
 #endif
 
@@ -73,7 +74,7 @@ acc_finalize(void) {
     if (!as_count())
         return;
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     if (memory_log)
         fclose(memory_log);
 #endif
@@ -87,7 +88,7 @@ void *
 acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
     va_list va;
     void *ret;
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     va_list vacopy;
 #endif
 
@@ -97,7 +98,7 @@ acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
 
     va_start(va, txt);
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     if (memory_log) {
         fprintf(memory_log, "%p: allocated %lu bytes at %s line %d: ",
                 ret, sz, file, line);
@@ -146,7 +147,7 @@ acc_realloc(void *ptr, size_t sz, char *file, int line) {
     else
         as_add(ret, sz, file, line, "realloced from NULL memory");
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: reallocated %p to %lu bytes at %s line %d",
                 ret, ptr, sz, file, line);
@@ -171,7 +172,7 @@ acc_free(void *ptr, char *file, int line) {
     while (0);
 #endif
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: freed from %s line %d\n", ptr, file, line);
 #endif
@@ -192,7 +193,7 @@ acc_strdup(const char *str, char *file, int line) {
     if (!ret)
         return NULL;
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: strduped %lu bytes at %s line %d: ",
                 ret, strlen(str) + 1, file, line);
@@ -212,7 +213,7 @@ acc_strndup(const char *str, size_t sz, char *file, int line) {
     if (!ret)
         return NULL;
 
-#if MEMORY_LOG
+#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: strnduped %lu bytes at %s line %d: ",
                 ret, sz, file, line);
