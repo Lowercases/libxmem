@@ -25,4 +25,32 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-SUBDIRS = src include
+AC_DEFUN([LIBXMEM_MACROS], [
+AC_ARG_ENABLE([memacc],
+    AS_HELP_STRING([--enable-memacc], [Enable memory accounting options]),
+    if test "x$enable_memacc" = xno
+    then
+        enable_libxmem=0
+    else
+        enable_libxmem=1
+    fi,
+    enable_libxmem=0
+)
+AC_DEFINE_UNQUOTED([ENABLE_LIBXMEM], [$enable_libxmem],
+    [Enable memory accounting])
+
+AC_ARG_ENABLE([zeroing],
+    AS_HELP_STRING([--enable-zeroing], [Enable freed memory zeroing]),
+    if test "x$enable_zeroing" = xyes
+    then
+        AC_DEFINE([LIBXMEM_ZEROING], [1], [Enable memory zeroing on free])
+    fi
+)
+AC_ARG_ENABLE([memlog],
+    AS_HELP_STRING([--enable-memlog], [Enable memory logging]),
+    if test "x$enable_memlog" = xyes
+    then
+        AC_DEFINE([LIBXMEM_MEMLOG], [1], [Enable memory logging])
+    fi
+)
+])

@@ -25,4 +25,5 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-SUBDIRS = src include
+m4/*
+!m4/libxmem.m4

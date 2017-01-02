@@ -25,4 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-SUBDIRS = src include
+lib_LTLIBRARIES = libxmem.la
+
+libxmem_la_SOURCES = account.c store.h store.c check.c

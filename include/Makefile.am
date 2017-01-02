@@ -25,4 +25,4 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-SUBDIRS = src include
+pkginclude_HEADERS = libxmem.h account.h
