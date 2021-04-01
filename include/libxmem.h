@@ -28,8 +28,6 @@
 #if !defined(LIBXMEM_H)
 #define LIBXMEM_H
 
-#include <config.h>
-
 #if !defined(ENABLE_LIBXMEM)
 #warning ENABLE_LIBXMEM not explicitely defined -- defaulting to disabled
 #endif

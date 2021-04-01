@@ -25,5 +25,26 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+.deps/
+.libs/
+aclocal.m4
+ar-lib
+autom4te.cache/
+compile
+configure
+config.*
+depcomp
+include/
+lib/
 m4/*
 !m4/libxmem.m4
+Makefile
+Makefile.in
+install-sh
+libtool
+ltmain.sh
+missing
+stamp-h1
+*.la
+*.lo
+*.o

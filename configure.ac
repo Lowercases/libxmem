@@ -42,10 +42,12 @@ AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+
+# Initialise libtool
+LT_INIT
 
 # Checks for libraries.
 
@@ -59,8 +61,6 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([atexit memset strdup strndup])
-
-LIBXMEM_MACROS
 
 AC_CONFIG_FILES([Makefile
                  include/Makefile
