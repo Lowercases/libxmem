@@ -130,6 +130,9 @@ to `xmalloc()`, `xfree()` or worse, `check()`. In order to disable it set
 ```
 and the functions will be redirected to the standard library counterparts.
 
+The end-user shouldn't be burdened with a dependency on libxmem.h, so it's a good practice to guard
+`#include <libxmem.h>` with `#if ENABLE_LIBXMEM` or similar.
+
 ## Integrating to an existing project
 
 ### System-wide or local install
@@ -149,5 +152,28 @@ file, which adds
 to the project's `configure` script. This allows for using a globally or locally installed libxmem (by telling it the
 path), and `--enable-memacc` will toggle `ENABLE_LIBXMEM` to 1, thus enabling libxmem.
 
+The snippet will `AC_DEFINE` `@LIBXMEM@`, which needs to be added to the `LDADD` of any binary (or `LIBADD` for
+libraries) and expands to either `-lxmem` or the empty string, depending on whether libxmem is enabled. It also
+defines the Makefile variables `$(LIBXMEM_CFLAGS)` and `$(LIBXMEM_LDFLAGS)`, which can be appended to
+`$(AM_CFLAGS)` and `$(AM_LDFLAGS)`.
+
 There's also the option of including libxmem as a subproject (libxmem being itself an autotools project) via
 `AC_CONFIG_SUBDIRS`. Refer to `libxmem.m4` to get ideas on how to accomplish this.
+
+## Install
+Installs as a typical autotools project.
+
+From release tarball:
+```
+./configure [--prefix=?]
+make
+[sudo] make install
+```
+
+From git source:
+```
+autoreconf -i       # Requires autotools
+./configure [--prefix=?]
+make
+[sudo] make install
+```
