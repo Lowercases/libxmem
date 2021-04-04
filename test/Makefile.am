@@ -24,28 +24,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+AM_CFLAGS = -I../include
+AM_LDFLAGS = -L../src -lxmem
 
-.deps/
-.libs/
-aclocal.m4
-ar-lib
-autom4te.cache/
-compile
-configure
-config.*
-depcomp
-include/
-lib/
-m4/*
-!m4/libxmem.m4
-Makefile
-Makefile.in
-install-sh
-libtool
-ltmain.sh
-missing
-stamp-h1
-test-driver
-*.la
-*.lo
-*.o
+check_PROGRAMS = forgotten_memory
+
+TESTS = forgotten_memory
+LOG_COMPILER = ./test.sh
