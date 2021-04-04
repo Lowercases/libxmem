@@ -27,7 +27,7 @@
 AM_CFLAGS = -I../include
 AM_LDFLAGS = -L../src -lxmem
 
-check_PROGRAMS = forgotten_memory
+check_PROGRAMS = forgotten_memory double_free
 
-TESTS = forgotten_memory
+TESTS = forgotten_memory double_free
 LOG_COMPILER = ./test.sh
