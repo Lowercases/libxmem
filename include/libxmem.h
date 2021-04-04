@@ -45,6 +45,7 @@
 
 #define character(ptr) acc_character(ptr)
 #define xmem_set_reentrant() acc_set_reentrant()
+#define xmem_enable_memlog() acc_enable_memlog()
 
 #define check(ptr, base) acc_check(ptr, base, __FILE__, __LINE__)
 #define checkr(ptr, sz, base) acc_checkr(ptr, sz, base, __FILE__, __LINE__)
@@ -59,6 +60,7 @@
 #define xstrndup strndup
 
 #define xmem_set_reentrant()
+#define xmem_enable_memlog()
 
 #define check(ptr, base)
 #define checkr(ptr, sz, base)

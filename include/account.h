@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 void acc_set_reentrant(void);
+int acc_enable_memlog(void);
 
 void *acc_malloc(size_t sz, char *file, int line, char txt[], ...)
         __attribute__ (( format(printf, 4, 5) ));

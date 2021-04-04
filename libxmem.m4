@@ -52,15 +52,6 @@ dnl --enable-libxmem
 AC_DEFINE_UNQUOTED([ENABLE_LIBXMEM], [$enable_libxmem],
     [Enable memory accounting])
 
-dnl --enable-zeroing
-AC_ARG_ENABLE([zeroing],
-    AS_HELP_STRING([--enable-zeroing], [Enable freed memory zeroing]),
-    if test "x$enable_zeroing" = xyes
-    then
-        AC_DEFINE([LIBXMEM_ZEROING], [1], [Enable memory zeroing on free])
-    fi
-)
-
 dnl --enable-memlog
 AC_ARG_ENABLE([memlog],
     AS_HELP_STRING([--enable-memlog], [Enable memory logging]),
@@ -106,6 +97,8 @@ AC_DEFUN([LIBXMEM_DEFINE_STUBS], [
     AC_DEFINE([xstrndup], [strndup], [Defined by libxmem.m4])
 
     AC_DEFINE([xmem_set_reentrant()], [], [Defined by libxmem.m4])
+    AC_DEFINE([xmem_enable_memlog()], [], [Defined by libxmem.m4])
+
     AC_DEFINE([check(ptr, base)], [], [Defined by libxmem.m4])
     AC_DEFINE([checkr(ptr, sz, base)], [], [Defined by libxmem.m4])
   ])

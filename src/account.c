@@ -33,9 +33,7 @@
 
 #include "store.h"
 
-#if LIBXMEM_MEMLOG
 FILE *memory_log;
-#endif
 
 int acc_init(void) __attribute__ ((constructor));
 void acc_finalize(void);
@@ -44,10 +42,6 @@ int
 acc_init(void) {
     atexit(acc_finalize);
 
-#if LIBXMEM_MEMLOG
-    memory_log = fopen("memory.log", "w");
-#endif
-
     return 0;
 
 }
@@ -55,6 +49,16 @@ acc_init(void) {
 void
 acc_set_reentrant() {
     as_set_reentrant();
+
+}
+
+int
+acc_enable_memlog() {
+    if (!memory_log)
+        memory_log = fopen("memory.log", "w");
+        // Ignore any errors, we'd have to abort
+
+    return memory_log != 0;
 
 }
 
@@ -74,10 +78,8 @@ acc_finalize(void) {
     if (!as_count())
         return;
 
-#if LIBXMEM_MEMLOG
     if (memory_log)
         fclose(memory_log);
-#endif
 
     fprintf(stderr, "%d allocated blocks exist on termination:\n", as_count());
     as_walk(acc_print_block, NULL);
@@ -88,9 +90,7 @@ void *
 acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
     va_list va;
     void *ret;
-#if LIBXMEM_MEMLOG
     va_list vacopy;
-#endif
 
     ret = malloc(sz);
     if (!ret)
@@ -98,7 +98,6 @@ acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
 
     va_start(va, txt);
 
-#if LIBXMEM_MEMLOG
     if (memory_log) {
         fprintf(memory_log, "%p: allocated %lu bytes at %s line %d: ",
                 ret, sz, file, line);
@@ -107,7 +106,6 @@ acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
         va_end(vacopy);
         fprintf(memory_log, "\n");
     }
-#endif
 
     as_vadd(ret, sz, file, line, txt, va);
     va_end(va);
@@ -119,39 +117,26 @@ acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
 void *
 acc_realloc(void *ptr, size_t sz, char *file, int line) {
     void *ret;
+    size_t oldsz;
+
+    if (ptr && !as_get(ptr, &oldsz)) {
+        printf("Aborting trying to realloc %p, %s line %d; not found in "
+                "storage\n", ptr, file, line);
+        abort();
+    }
 
     ret = realloc(ptr, sz);
     if (!ret)
         return NULL;
-
-#if MEMORY_ZEROING
-    do {
-        size_t oldsz;
-
-        if (!as_get(ptr, &oldsz))
-            break;
-
-        // Only zero out the part that's not in the new array.
-        // For the special case that's the same pointer, the difference yields 0
-        if (ret > ptr)
-            memset(ptr, 0, ret < ptr + oldsz ? ret - ptr : oldsz);
-        else // if (ptr > ret)
-            memset(ptr, 0, ptr < ret + oldsz ? ptr - ret : oldsz);
-
-    }
-    while (0);
-#endif
 
     if (ptr)
         as_replace(ptr, ret, sz, file, line);
     else
         as_add(ret, sz, file, line, "realloced from NULL memory");
 
-#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: reallocated %p to %lu bytes at %s line %d",
                 ret, ptr, sz, file, line);
-#endif
 
     return ret;
 
@@ -159,7 +144,6 @@ acc_realloc(void *ptr, size_t sz, char *file, int line) {
 
 void
 acc_free(void *ptr, char *file, int line) {
-#if MEMORY_ZEROING
     do {
         size_t oldsz;
 
@@ -170,12 +154,9 @@ acc_free(void *ptr, char *file, int line) {
 
     }
     while (0);
-#endif
 
-#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: freed from %s line %d\n", ptr, file, line);
-#endif
     
     if (!as_delete(ptr)) {
         printf("Aborting trying to delete %p, %s line %d\n", ptr, file, line);
@@ -193,11 +174,9 @@ acc_strdup(const char *str, char *file, int line) {
     if (!ret)
         return NULL;
 
-#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: strduped %lu bytes at %s line %d: ",
                 ret, strlen(str) + 1, file, line);
-#endif
     
     as_add(ret, strlen(str) + 1, file, line, "%s", str);
 
@@ -213,11 +192,9 @@ acc_strndup(const char *str, size_t sz, char *file, int line) {
     if (!ret)
         return NULL;
 
-#if LIBXMEM_MEMLOG
     if (memory_log)
         fprintf(memory_log, "%p: strnduped %lu bytes at %s line %d: ",
                 ret, sz, file, line);
-#endif
     
     as_add(ret, strlen(str) + 1, file, line, "%s", ret);
 
