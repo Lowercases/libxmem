@@ -31,3 +31,5 @@ check_PROGRAMS = forgotten_memory double_free
 
 TESTS = forgotten_memory double_free
 LOG_COMPILER = ./test.sh
+
+EXTRA_DIST = test.sh *.expect *.rc
