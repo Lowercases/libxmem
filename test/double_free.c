@@ -32,7 +32,7 @@
 #define ALLOCATIONS 1024
 
 int
-main(int argc, char *argv) {
+main(int argc, char *argv[]) {
     int i, r;
     void *alloc[1024];
 
