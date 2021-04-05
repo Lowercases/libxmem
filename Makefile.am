@@ -28,3 +28,5 @@
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = src include test
+
+EXTRA_DIST = LICENSE libxmem.m4
