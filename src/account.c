@@ -81,7 +81,8 @@ acc_finalize(void) {
     if (memory_log)
         fclose(memory_log);
 
-    fprintf(stderr, "%d allocated blocks exist on termination:\n", as_count());
+    fprintf(stderr, "%d allocated %s on termination:\n", as_count(),
+            as_count() == 1 ? "block exists" : "blocks exist");
     as_walk(acc_print_block, NULL);
 
 }

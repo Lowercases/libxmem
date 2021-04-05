@@ -25,7 +25,7 @@ results in:
 $ gcc -o hello hello.c -lxmem
 $ ./hello
 Hello world!
-1 allocated blocks exist on termination:
+1 allocated block exists on termination:
 - 20 bytes allocated in hello.c, line 6: txt `Hello string'
 ```
 
@@ -61,7 +61,7 @@ main(int argc, char *argv[]) {
 ```
 results in
 ```
-1 allocated blocks exist on termination:
+1 allocated block exists on termination:
 - 1024 bytes allocated in input.c, line 8: txt `Forgotten string'
 ```
 
