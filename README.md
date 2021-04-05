@@ -6,6 +6,28 @@ that besides reserving the memory (themselves relying on the standard library) k
 together with size, user comment and source file and line. When the program exits, libxmem dumps on the screen a list
 of still-reserved chunks, so each of them can be debugged. libxmem will also abort() on double free.
 
+## Quick example
+```C
+#define ENABLE_LIBXMEM 1
+#include <libxmem.h>
+#include <stdio.h>
+
+int main() {
+  char *hello = xmalloc(20, "Hello string");
+  sprintf(hello, "Hello world!");
+  
+  printf("%s\n", hello);
+  return 0;
+}
+```
+results in:
+```
+$ gcc -o hello hello.c -lxmem
+$ ./hello
+Hello world!
+1 allocated blocks exist on termination:
+- 20 bytes allocated in hello.c, line 6: txt `Hello string'
+```
 
 ## Basic usage
 In order to use it, replace every occurrence of `malloc()` with
