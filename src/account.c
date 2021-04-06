@@ -115,34 +115,6 @@ acc_malloc(size_t sz, char *file, int line, char txt[], ...) {
 
 }
 
-void *
-acc_realloc(void *ptr, size_t sz, char *file, int line) {
-    void *ret;
-    size_t oldsz;
-
-    if (ptr && !as_get(ptr, &oldsz)) {
-        printf("Aborting trying to realloc %p, %s line %d; not found in "
-                "storage\n", ptr, file, line);
-        abort();
-    }
-
-    ret = realloc(ptr, sz);
-    if (!ret)
-        return NULL;
-
-    if (ptr)
-        as_replace(ptr, ret, sz, file, line);
-    else
-        as_add(ret, sz, file, line, "realloced from NULL memory");
-
-    if (memory_log)
-        fprintf(memory_log, "%p: reallocated %p to %lu bytes at %s line %d",
-                ret, ptr, sz, file, line);
-
-    return ret;
-
-}
-
 void
 acc_free(void *ptr, char *file, int line) {
     do {
@@ -164,6 +136,39 @@ acc_free(void *ptr, char *file, int line) {
         abort();
     }
     free(ptr);
+
+}
+
+void *
+acc_realloc(void *ptr, size_t sz, char *file, int line) {
+    void *ret;
+    size_t oldsz;
+
+    if (!sz) {
+        acc_free(ptr, file, line);
+        return NULL;
+    }
+
+    if (ptr && !as_get(ptr, &oldsz)) {
+        printf("Aborting trying to realloc %p, %s line %d; not found in "
+                "storage\n", ptr, file, line);
+        abort();
+    }
+
+    ret = realloc(ptr, sz);
+    if (!ret)
+        return NULL;
+
+    if (ptr)
+        as_replace(ptr, ret, sz, file, line);
+    else
+        as_add(ret, sz, file, line, "realloced from NULL memory");
+
+    if (memory_log)
+        fprintf(memory_log, "%p: reallocated %p to %lu bytes at %s line %d",
+                ret, ptr, sz, file, line);
+
+    return ret;
 
 }
 
