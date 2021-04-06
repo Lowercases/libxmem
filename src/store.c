@@ -34,6 +34,8 @@
 
 #include <pthread.h>
 
+#include "uthash.h"
+
 /**
  * We'll store the used pointers in a simple list. Perhaps in the future it's
  * worthy to implement a hash, but for the time it's not -- and search.h is
@@ -48,9 +50,9 @@ struct storage {
     char *file;
     int line;
 
-    struct storage *next;
+    UT_hash_handle hh;
 
-} storage;
+} *storage;
 
 int as_reentrant;
 int walking;
@@ -121,8 +123,7 @@ as_vadd(void *ptr, size_t sz, char *file, int line,
     st->txt[flen] = '\0';
     
     LOCK();
-    st->next = storage.next;
-    storage.next = st;
+    HASH_ADD_PTR(storage, ptr, st);
     UNLOCK();
 
     return 1;
@@ -134,22 +135,25 @@ as_replace(void *prev, void *ptr, size_t sz, char *file, int line) {
     struct storage *curr;
 
     LOCK();
-    for (curr = storage.next; curr; curr = curr->next)
-        if (curr->ptr == prev) {
-            curr->ptr = ptr;
-            curr->sz = sz;
+    HASH_FIND_PTR(storage, &prev, curr);
+    if (!curr) {
+        UNLOCK();
+        return 0;
+    }
 
-            free(curr->file);
-            curr->file = strdup(file);
-            curr->line = line;
+    HASH_DEL(storage, curr);
 
-            UNLOCK();
-            return 1;
+    curr->ptr = ptr;
+    curr->sz = sz;
 
-       }
+    free(curr->file);
+    curr->file = strdup(file);
+    curr->line = line;
 
+    HASH_ADD_PTR(storage, ptr, curr);
     UNLOCK();
-    return 0;
+
+    return 1;
 
 }
 
@@ -158,15 +162,17 @@ as_get(const void *ptr, size_t *sz) {
     struct storage *curr;
 
     LOCK();
-    for (curr = storage.next; curr; curr = curr->next)
-        if (curr->ptr == ptr) {
-            *sz = curr->sz;
-            UNLOCK();
-            return 1;
-        }
+    HASH_FIND_PTR(storage, &ptr, curr);
 
+    if (!curr) {
+        UNLOCK();
+        return 0;
+    }
+
+    *sz = curr->sz;
     UNLOCK();
-    return 0;
+
+    return 1;
 
 }
 
@@ -177,43 +183,41 @@ as_character(const void *ptr) {
 
     if (!walking)
         LOCK();
-    for (curr = storage.next; curr; curr = curr->next)
-        if (curr->ptr == ptr) {
-            // TODO: This is not entirely safe.
-            ret = curr->txt;
-            if (!walking)
-                UNLOCK();
-            return ret;
-        }
+    HASH_FIND_PTR(storage, &ptr, curr);
 
+    if (!curr) {
+        if (!walking)
+            UNLOCK();
+        return NULL;
+    }
+
+    // TODO: This is not entirely safe.
+    ret = curr->txt;
     if (!walking)
         UNLOCK();
-    return NULL;
+    return ret;
 
 }
 
 int
 as_delete(void *ptr) {
-    struct storage *curr, *next;
+    struct storage *curr;
 
     LOCK();
-    for (curr = &storage; curr->next; curr = curr->next)
-        if (curr->next->ptr == ptr) {
-            next = curr->next->next;
+    HASH_FIND_PTR(storage, &ptr, curr);
+    if (!curr) {
+        UNLOCK();
+        return 0;
+    }
 
-            free(curr->next->file);
-            free(curr->next->txt);
-            free(curr->next);
-
-            curr->next = next;
-
-            UNLOCK();
-            return 1;
-
-        }
-
+    HASH_DEL(storage, curr);
     UNLOCK();
-    return 0;
+
+    free(curr->file);
+    free(curr->txt);
+    free(curr);
+
+    return 1;
 
 }
 
@@ -227,7 +231,7 @@ as_walk(callback, arg)
 
     LOCK();
     walking = 1;
-    for (curr = storage.next; curr; curr = curr->next)
+    for (curr = storage; curr; curr = curr->hh.next)
         callback(curr->ptr, curr->sz, curr->txt, curr->file, curr->line, arg);
     walking = 0;
     UNLOCK();
@@ -238,12 +242,10 @@ as_walk(callback, arg)
 
 int
 as_count(void) {
-    struct storage *curr;
     int r;
 
     LOCK();
-    for (r = 0, curr = storage.next; curr; curr = curr->next)
-        r ++;
+    r = HASH_COUNT(storage);
     UNLOCK();
 
     return r;
