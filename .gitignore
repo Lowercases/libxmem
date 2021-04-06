@@ -34,6 +34,7 @@ compile
 configure
 config.*
 depcomp
+gmon.out
 include/
 lib/
 m4/*
