@@ -27,7 +27,7 @@
 #
 
 AC_PREREQ([2.69])
-AC_INIT([libxmem], [0.0.1], [nachex@gmail.com])
+AC_INIT([libxmem], [0.1.0], [nachex@gmail.com])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
