@@ -28,3 +28,4 @@
 *.trs
 double_free
 forgotten_memory
+speed
